@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Coating App">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b0f14">
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ29hdGluZyBQcm9jZXNzIEFwcCIsInNob3J0X25hbWUiOiJDb2F0aW5nIEFwcCIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGIwZjE0IiwidGhlbWVfY29sb3IiOiIjMGIwZjE0IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDsiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+  <title>Coating Process App</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --card-hover: #243044;
+      --border: #2d3a4f;
+      --text: #e8eef7;
+      --text-muted: #8b9cb3;
+      --accent-twas: #3b82f6;
+      --accent-plasma: #8b5cf6;
+      --accent-green: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      overscroll-behavior: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: #0b0f14;
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* App chrome */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(11,15,20,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 12px 16px;
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+
+    .screen {
+      display: none;
+      padding: 12px 16px 80px;
+      max-width: 640px;
+      margin: 0 auto;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(18,22,28,0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 6px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .nav-btn.active { color: #3b82f6; }
+    .nav-btn span { font-size: 1.25rem; }
+
+    /* Improved cards */
+    .type-card {
+      background: linear-gradient(145deg, #1a2332, #151c28);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    .part-card, .maint-card {
+      background: #161d29;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .part-card-top { margin-bottom: 2px; }
+    .part-name { font-size: 0.98rem; }
+    .part-number { font-size: 0.78rem; padding: 1px 6px; }
+    .part-meta { font-size: 0.75rem; gap: 6px 10px; margin-top: 4px; }
+    .client-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #8b9cb3;
+      text-transform: uppercase;
+      margin: 16px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .param-item {
+      background: #161d29;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      border-radius: 12px;
+      font-weight: 600;
+      transition: transform 0.1s, background 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-success { background: #10b981; }
+    .btn-primary { border-radius: 12px; }
+
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-top: 8px;
+    }
+
+    .back-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .header-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Landing */
+    .landing-title {
+      text-align: center;
+      margin: 24px 0 28px;
+    }
+
+    .landing-title h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .landing-title p {
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .type-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .type-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .type-card:active {
+      background: var(--card-hover);
+    }
+
+    .type-card.twas .badge { background: var(--accent-twas); }
+    .type-card.plasma .badge { background: var(--accent-plasma); }
+
+    .type-card .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: white;
+      margin-bottom: 10px;
+      letter-spacing: 0.03em;
+    }
+
+    .type-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 4px;
+    }
+
+    .type-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .type-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--accent-twas);
+      color: white;
+    }
+
+    .type-card.plasma .btn-primary {
+      background: var(--accent-plasma);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-sm {
+      padding: 7px 12px;
+      font-size: 0.82rem;
+    }
+
+    /* Search */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px 12px 42px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent-twas);
+    }
+
+    .search-wrap::before {
+      content: "🔍";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+
+    /* Part cards */
+    .part-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .part-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .part-card:active {
+      background: var(--card-hover);
+    }
+
+    .part-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .part-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .part-number {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      color: var(--accent-twas);
+      background: rgba(59,130,246,0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .part-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .part-meta span strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    /* Part Detail */
+    .param-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .param-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .param-item label {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .param-item .value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .param-item.full {
+      grid-column: 1 / -1;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      font-weight: 700;
+    }
+
+    /* Image areas */
+    .image-area {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .image-area.small {
+      min-height: 120px;
+    }
+
+    .image-placeholder-inner {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .image-placeholder-inner span {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .step-image {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+      max-height: 200px;
+      object-fit: contain;
+      background: #0a0e14;
+    }
+
+    /* Steps */
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .step-num {
+      background: var(--accent-twas);
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .step-body {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+    }
+
+    .step-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .form-group textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent-twas);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-block {
+      flex: 1;
+      justify-content: center;
+      padding: 13px;
+    }
+
+    .btn-danger {
+      background: rgba(239,68,68,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .btn-success {
+      background: var(--accent-green);
+      color: white;
+    }
+
+    /* Maintenance list */
+    .maint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .maint-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .maint-card:active {
+      background: var(--card-hover);
+    }
+
+    .maint-card h3 {
+      font-size: 1.05rem;
+    }
+
+    .maint-card span {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent-green);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.25s;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* Edit mode indicator */
+    .edit-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== LANDING ========== -->
+  <div id="screen-landing" class="screen active">
+    <div class="landing-title">
+      <h1>Coating Processes</h1>
+      <p>Select coating type</p>
+    </div>
+
+    <div class="type-cards">
+      <div class="type-card twas" onclick="openCoating('TWAS')">
+        <div class="badge">TWAS</div>
+        <h2>Twin Arc Spray</h2>
+        <p>Parts library & maintenance procedures</p>
+        <div class="type-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation(); openParts('TWAS')">Parts</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('TWAS')">Maintenance</button>
+        </div>
+      </div>
+
+      <div class="type-card plasma" onclick="openCoating('PLASMA')">
+        <div class="badge">PLASMA</div>
+        <h2>Plasma Coating</h2>
+        <p>Parts library & maintenance procedures</p>
+        <div class="type-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation(); openParts('PLASMA')">Parts</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('PLASMA')">Maintenance</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; text-align: center;">
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Data Backup</div>
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="exportData()">Export Data</button>
+        <button class="btn btn-secondary btn-sm" onclick="copyData()">Copy Data</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">Import Data</button>
+        <input type="file" id="import-input" accept=".json,application/json" style="display:none" onchange="importData(event)">
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; max-width: 280px; margin-left: auto; margin-right: auto;">
+        Export before updating the app. Import to restore your parts, photos, and steps.
+      </p>
+    </div>
+  </div>
+
+  <!-- ========== PARTS LIST ========== -->
+  <div id="screen-parts" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('landing')" title="Home">⌂</button>
+      <div style="flex:1">
+        <h1 id="parts-title">Parts</h1>
+        <div class="header-sub" id="parts-subtitle">Twin Arc Spray</div>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="openAddPart()">+ Part</button>
+    </div>
+
+    <div class="search-wrap">
+      <input type="search" id="search-input" placeholder="Search Part #, Name, Program..." oninput="filterParts()">
+    </div>
+
+    <div class="part-list" id="part-list"></div>
+  </div>
+
+  <!-- ========== ADD / EDIT PART ========== -->
+  <div id="screen-add-part" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="cancelPartForm()">←</button>
+      <div>
+        <h1 id="add-part-title">Add Part</h1>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Part Name *</label>
+      <input type="text" id="new-part-name" placeholder="e.g. COIL CUP">
+    </div>
+    <div class="form-group">
+      <label>Part # *</label>
+      <input type="text" id="new-part-number" placeholder="e.g. 30076751">
+    </div>
+    <div class="form-group">
+      <label>Client</label>
+      <input type="text" id="new-part-client" placeholder="e.g. TSMC">
+    </div>
+    <div class="form-group">
+      <label>PRG #</label>
+      <input type="text" id="new-part-prg" placeholder="e.g. 430">
+    </div>
+    <div class="form-group">
+      <label>Program</label>
+      <input type="text" id="new-part-program" placeholder="e.g. T44974 or 16360">
+    </div>
+    <div class="form-group">
+      <label>Fixture</label>
+      <input type="text" id="new-part-fixture" placeholder="Fixture name or number">
+    </div>
+    <div class="form-group">
+      <label>Amps</label>
+      <input type="text" id="new-part-amps" placeholder="e.g. 125">
+    </div>
+    <div class="form-group">
+      <label>Volts</label>
+      <input type="text" id="new-part-volts" placeholder="e.g. 32">
+    </div>
+    <div class="form-group">
+      <label>Air Pressure</label>
+      <input type="text" id="new-part-air" placeholder="e.g. 60">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary btn-block" onclick="cancelPartForm()">Cancel</button>
+      <button class="btn btn-success btn-block" onclick="saveNewPart()">Save Part</button>
+    </div>
+  </div>
+
+  <!-- ========== PART DETAIL ========== -->
+  <div id="screen-part-detail" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('parts')">←</button>
+      <div style="flex:1">
+        <h1 id="detail-name">Part Name</h1>
+        <div class="header-sub" id="detail-number">Part #</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openEditPart()">Info</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleEditMode()">Steps</button>
+    </div>
+
+    <div id="part-image-area" class="image-area" onclick="document.getElementById('part-image-input').click()">
+      <div id="part-image-placeholder" class="image-placeholder-inner">
+        <span>🖼️</span>
+        <div>Tap to choose part photo</div>
+      </div>
+      <img id="part-image" style="display:none; width:100%; border-radius:12px; max-height:240px; object-fit:contain;">
+    </div>
+    <input type="file" id="part-image-input" accept="image/*" style="display:none" onchange="handlePartImage(event)">
+
+    <div class="param-grid" id="param-grid"></div>
+
+    <div class="section-title">Process Steps</div>
+    <div class="edit-bar" id="steps-edit-bar" style="display:none">
+      <button class="btn btn-success btn-sm" onclick="addStep()">+ Add Step</button>
+    </div>
+    <div class="steps-list" id="steps-list"></div>
+  </div>
+
+  <!-- ========== EDIT STEP ========== -->
+  <div id="screen-edit-step" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('part-detail')">←</button>
+      <button class="back-btn" onclick="showScreen('landing')" title="Home" style="margin-left:-4px">⌂</button>
+      <div>
+        <h1 id="edit-step-title">Edit Step</h1>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Step Title</label>
+      <input type="text" id="step-title-input" placeholder="e.g. Setup Fixture">
+    </div>
+    <div class="form-group">
+      <label>Instructions</label>
+      <textarea id="step-body-input" placeholder="Detailed instructions..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Step Photo (optional)</label>
+      <div id="step-image-area" class="image-area small" onclick="document.getElementById('step-image-input').click()">
+        <div id="step-image-placeholder" class="image-placeholder-inner">
+          <span>🖼️</span>
+          <div>Tap to choose photo</div>
+        </div>
+        <img id="step-image-preview" style="display:none; width:100%; border-radius:10px; max-height:180px; object-fit:contain;">
+      </div>
+      <input type="file" id="step-image-input" accept="image/*" style="display:none" onchange="handleStepImage(event)">
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px; display:none" id="remove-step-image-btn" onclick="removeStepImage()">Remove Photo</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary btn-block" onclick="showScreen('part-detail')">Cancel</button>
+      <button class="btn btn-success btn-block" onclick="saveStep()">Save</button>
+    </div>
+    <div style="margin-top:16px" id="delete-step-wrap">
+      <button class="btn btn-danger btn-block" onclick="deleteStep()">Delete Step</button>
+    </div>
+  </div>
+
+  <!-- ========== MAINTENANCE ========== -->
+  <div id="screen-maintenance" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('landing')" title="Home">⌂</button>
+      <div style="flex:1">
+        <h1 id="maint-title">Maintenance</h1>
+        <div class="header-sub" id="maint-subtitle">Twin Arc Spray</div>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="openAddMaintenance()">+ Item</button>
+    </div>
+
+    <div class="search-wrap">
+      <input type="search" id="maint-search-input" placeholder="Search name or code..." oninput="filterMaintenance()">
+    </div>
+
+    <div class="maint-list" id="maint-list"></div>
+  </div>
+
+  <!-- ========== ADD / EDIT MAINTENANCE ========== -->
+  <div id="screen-add-maint" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="cancelMaintForm()">←</button>
+      <div>
+        <h1 id="add-maint-title">Add Maintenance</h1>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="new-maint-name" placeholder="e.g. Load Wire">
+    </div>
+    <div class="form-group">
+      <label>Code / Program</label>
+      <input type="text" id="new-maint-code" placeholder="e.g. LTSTWAS">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary btn-block" onclick="cancelMaintForm()">Cancel</button>
+      <button class="btn btn-success btn-block" onclick="saveMaintenance()">Save</button>
+    </div>
+  </div>
+
+  <!-- ========== MAINTENANCE DETAIL ========== -->
+  <div id="screen-maint-detail" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('maintenance')">←</button>
+      <button class="back-btn" onclick="showScreen('landing')" title="Home" style="margin-left:-4px">⌂</button>
+      <div>
+        <h1 id="maint-detail-title">Procedure</h1>
+      </div>
+    </div>
+
+    <div class="section-title">Steps</div>
+    <div class="steps-list" id="maint-steps-list"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ========== DATA ==========
+    const defaultData = {
+      TWAS: {
+        parts: [
+          { id: "twas-1", client: "TSMC", partName: "COIL CUP", partNumber: "30076751", prg: "430", program: "T44974", fixtures: ["COIL CUP FIXTURE (CABINET BIN)"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-2", client: "TSMC", partName: "OUTER SHIELD 300MM", partNumber: "30076752", prg: "426", program: "T44976", fixtures: ["130-00174"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-3", client: "TSMC", partName: "COVER RING", partNumber: "30077631", prg: "427", program: "T63124 - BURTEX", fixtures: ["0186-INSIDE", "00192-OUTSIDE- 00127 TRNTBL"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-4", client: "TSMC", partName: "DEP O RING", partNumber: "30077632", prg: "431", program: "T63125M", fixtures: ["130-00333"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-5", client: "TSMC", partName: "INNER SHIELD 300MM", partNumber: "30072174", prg: "436", program: "T99268", fixtures: ["130-00129"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-6", client: "TSMC", partName: "SHUTTER DISC 30MM", partNumber: "30087627", prg: "453", program: "TM6609", fixtures: ["120-00156-2"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-7", client: "TSMC", partName: "UCT-TWAS DAILY COUPON", partNumber: "", prg: "461", program: "TWASLTS", fixtures: ["LTTWAS"], amps: "125", volts: "28", airPressure: "50", steps: [] },
+          { id: "twas-8", client: "INTEL", partName: "SHUTTER DISC", partNumber: "500124275", prg: "101", program: "I11657", fixtures: ["AS20-45231-FX REV 5"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-9", client: "INTEL", partName: "UPPER SHIELD", partNumber: "500124272", prg: "103", program: "I21234", fixtures: ["130-00243"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-10", client: "INTEL", partName: "LOWER SHIELD", partNumber: "500124273", prg: "107", program: "I22065", fixtures: ["130-00242"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-11", client: "INTEL", partName: "COVER RING", partNumber: "500124274", prg: "104", program: "I22064", fixtures: ["130-00127-1 INSIDE", "130-00127 OUTSIDE"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-12", client: "INTEL", partName: "DEPO RING J SPU", partNumber: "500124276", prg: "112", program: "I89922", fixtures: ["130-00208-1"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-13", client: "INTEL", partName: "Ti COVER RING (Cu)", partNumber: "633005716", prg: "135", program: "INT40241", fixtures: ["130-00192", "10mm CAP"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-14", client: "INTEL", partName: "CLAMP RING (Cu)", partNumber: "633005717", prg: "134", program: "INT40240", fixtures: ["130-00039", "10mm CAP"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-15", client: "INTEL", partName: "DEPO RING (CERAMIC)", partNumber: "633020163", prg: "26", program: "COAT_DR", fixtures: ["AS20-1573-OT AV REV 002"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-16", client: "INTEL", partName: "DEPO RING (CERAMIC)", partNumber: "633005713", prg: "132", program: "INT06099", fixtures: ["130-0039 (HV-CAP - ADJ AMPS - 10MM-CAP)"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-17", client: "APPLIED MATERIALS", partName: "6\" SHUTTER DISC", partNumber: "0021-20572", prg: "251", program: "P20527", fixtures: ["AS20-45321-FX REV 5"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-18", client: "APPLIED MATERIALS", partName: "6\" SHIELD", partNumber: "0021-2231(NIV)", prg: "253", program: "P21938", fixtures: ["130-0024-1"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-19", client: "APPLIED MATERIALS", partName: "OUTER SHIELD", partNumber: "0021-2331", prg: "259", program: "P23331", fixtures: [], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-20", client: "APPLIED MATERIALS", partName: "6\" WAFER", partNumber: "0020-27094", prg: "286", program: "P27094", fixtures: ["130-00229-1"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-21", client: "APPLIED MATERIALS", partName: "SHUTTER DISC 200MM", partNumber: "0020-28392", prg: "241", program: "P17725", fixtures: ["120-00156-2 PEDASTAL"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-22", client: "GLOBAL FOUNDATION", partName: "COVER RING C3.0 (COPPER)", partNumber: "SE-092794", prg: "73", program: "GF93555", fixtures: ["130-00191 INSIDE", "130-00127 OUTSIDE"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-23", client: "QMS", partName: "SHIELD INNER FORCE", partNumber: "SE-551945", prg: "256", program: "P2330", fixtures: ["130-00117"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-24", client: "JX NIPPON", partName: "Ti TARGET , CuZn BoP", partNumber: "", prg: "142", program: "JXNIPPON", fixtures: ["CUSTOMER FIXTURE"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-25", client: "JX NIPPON", partName: "Ti COVER RING (Cu)", partNumber: "", prg: "162", program: "M48305", fixtures: ["0020-48304"], amps: "125", volts: "32", airPressure: "60", steps: [] },
+          { id: "twas-26", client: "JX NIPPON", partName: "OUTER CUP FEEDTHRU", partNumber: "", prg: "28", program: "COILCUPS", fixtures: ["PEDESTAL"], amps: "125", volts: "32", airPressure: "60", steps: [] }
+        ],
+        maintenance: [
+          { id: "m-twas-1", name: "Load Wire", code: "LTSTWAS", steps: [
+            { title: "Power Down", body: "Ensure system is in a safe state. Turn off spray power." },
+            { title: "Remove Old Wire", body: "Open wire feed system. Remove remaining wire from both spools if changing material." },
+            { title: "Install New Wire", body: "Load new wire spools. Thread wire through feed rollers and contact tips." },
+            { title: "Check Tension", body: "Set proper wire tension. Verify smooth feed without binding." },
+            { title: "Test Feed", body: "Jog wire feed briefly to confirm both wires advance evenly." }
+          ]},
+          { id: "m-twas-2", name: "Change Settings", code: "CHGSET", steps: [
+            { title: "Select Recipe", body: "Open parameter screen. Select or create the required program/recipe." },
+            { title: "Adjust Amps / Volts", body: "Enter target current and voltage. Confirm against process sheet." },
+            { title: "Air Pressure", body: "Set atomizing air pressure. Verify with gauge." },
+            { title: "Save & Verify", body: "Save the program. Run a short test spray if needed." }
+          ]},
+          { id: "m-twas-3", name: "Daily Startup", code: "DAYSTART", steps: [
+            { title: "Air & Power Check", body: "Confirm clean dry air supply and main power are available." },
+            { title: "Wire Status", body: "Check remaining wire on both spools. Replace if low." },
+            { title: "Nozzle / Tips", body: "Inspect contact tips and nozzle for wear or buildup. Clean or replace." },
+            { title: "Test Arc", body: "Perform a short test arc away from parts to confirm stable operation." }
+          ]},
+          { id: "m-twas-4", name: "Tool Tips - Coil Cup Pedestal", code: "TIPS", steps: [
+            { title: "Tape Lengths", body: "1/2 in TAPE = 19 11/16 in LENGTH. 1 in TAPE = 29 7/16 in LENGTH" }
+          ]}
+        ]
+      },
+      PLASMA: {
+        parts: [
+          { id: "plas-1", client: "TSMC", partName: "BELL JAR 200MM (QUARTZ)", partNumber: "0040-33894", prg: "92", program: "PP0002C-REV 2", fixtures: ["GR-13101-CY", "AL203"], amps: "", volts: "", airPressure: "", steps: [] }
+        ],
+        maintenance: [
+          { id: "m-plas-1", name: "Torch Maintenance", code: "PLTORCH", steps: [
+            { title: "Cool Down", body: "Allow torch to cool completely before service." },
+            { title: "Inspect Electrode & Nozzle", body: "Check for erosion or damage. Replace as needed." },
+            { title: "Clean", body: "Clean gas passages and external surfaces." },
+            { title: "Reassemble & Test", body: "Reinstall components. Perform test arc." }
+          ]}
+        ]
+      }
+    };
+
+    // ========== STATE ==========
+    let data = JSON.parse(JSON.stringify(defaultData));
+    let currentType = "TWAS";
+    let currentPartId = null;
+    let currentStepIndex = null;
+    let editMode = false;
+    let filteredParts = [];
+
+    // Load from localStorage if available
+    function loadData() {
+      const saved = localStorage.getItem("coatingAppData");
+      const version = localStorage.getItem("coatingAppVersion");
+      if (saved && version === "full-2026") {
+        try {
+          data = JSON.parse(saved);
+        } catch (e) {
+          console.warn("Could not load saved data");
+        }
+      } else {
+        // Force fresh full dataset
+        data = JSON.parse(JSON.stringify(defaultData));
+        localStorage.setItem("coatingAppVersion", "full-2026");
+        localStorage.setItem("coatingAppData", JSON.stringify(data));
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem("coatingAppData", JSON.stringify(data));
+      showToast("Saved");
+    }
+
+    function exportData() {
+      try {
+        const exportObj = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          data: data
+        };
+        const json = JSON.stringify(exportObj);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "coating-app-backup-" + new Date().toISOString().slice(0,10) + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("Export downloaded");
+      } catch (e) {
+        alert("Export failed: " + e.message);
+      }
+    }
+
+    async function copyData() {
+      try {
+        const exportObj = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          data: data
+        };
+        const json = JSON.stringify(exportObj, null, 2);
+        await navigator.clipboard.writeText(json);
+        showToast("Data copied to clipboard");
+      } catch (e) {
+        // Fallback for older browsers / restricted contexts
+        const ta = document.createElement("textarea");
+        ta.value = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), data: data }, null, 2);
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast("Data copied to clipboard");
+        } catch (err) {
+          alert("Could not copy. Select and copy the text manually.");
+        }
+        document.body.removeChild(ta);
+      }
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          // Support both full export object and raw data
+          const imported = parsed.data ? parsed.data : parsed;
+          if (!imported.TWAS || !imported.PLASMA) {
+            alert("This file does not look like a valid Coating App backup.");
+            return;
+          }
+          if (!confirm("Import will replace all current parts, steps, and photos with the backup. Continue?")) {
+            return;
+          }
+          data = imported;
+          saveData();
+          showToast("Import successful");
+          showScreen("landing");
+        } catch (err) {
+          alert("Could not read backup file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    // ========== NAVIGATION ==========
+    function showScreen(name) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById("screen-" + name).classList.add("active");
+      window.scrollTo(0, 0);
+    }
+
+    function openCoating(type) {
+      currentType = type;
+      openParts(type);
+    }
+
+    function openParts(type) {
+      currentType = type;
+      document.getElementById("parts-title").textContent = "Parts";
+      document.getElementById("parts-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("search-input").value = "";
+      renderParts();
+      showScreen("parts");
+    }
+
+    // ========== PARTS LIST ==========
+    function renderParts() {
+      const list = document.getElementById("part-list");
+      let parts = (data[currentType].parts || []).slice();
+
+      if (parts.length === 0) {
+        list.innerHTML = '<div class="empty-state">No parts yet</div>';
+        return;
+      }
+
+      // Sort by company then part name
+      parts.sort((a, b) => {
+        const ca = (a.client || "").toUpperCase();
+        const cb = (b.client || "").toUpperCase();
+        if (ca !== cb) return ca.localeCompare(cb);
+        return (a.partName || "").localeCompare(b.partName || "");
+      });
+
+      let html = "";
+      let lastClient = "";
+      parts.forEach(p => {
+        const client = p.client || "Other";
+        if (client !== lastClient) {
+          html += `<div class="client-header">${escapeHtml(client)}</div>`;
+          lastClient = client;
+        }
+        html += `
+          <div class="part-card" onclick="openPart('${p.id}')">
+            <div class="part-card-top">
+              <div class="part-name">${escapeHtml(p.partName)}</div>
+              <div class="part-number">${escapeHtml(p.partNumber || "—")}</div>
+            </div>
+            <div class="part-meta">
+              <span><strong>PRG:</strong> ${escapeHtml(p.prg)}</span>
+              <span><strong>Prog:</strong> ${escapeHtml(p.program)}</span>
+              <span>${(p.fixtures && p.fixtures.length) ? p.fixtures.length + " fixture" + (p.fixtures.length > 1 ? "s" : "") : ""}</span>
+            </div>
+          </div>`;
+      });
+      list.innerHTML = html;
+    }
+
+    function filterParts() {
+      const q = document.getElementById("search-input").value.trim().toLowerCase();
+      const parts = data[currentType].parts;
+      const list = document.getElementById("part-list");
+
+      if (!q) {
+        renderParts();
+        return;
+      }
+
+      const filtered = parts.filter(p =>
+        (p.partNumber && p.partNumber.toLowerCase().includes(q)) ||
+        (p.partName && p.partName.toLowerCase().includes(q)) ||
+        (p.program && p.program.toLowerCase().includes(q)) ||
+        (p.client && p.client.toLowerCase().includes(q)) ||
+        (p.fixture && p.fixture.toLowerCase().includes(q)) ||
+        (p.prg && p.prg.toLowerCase().includes(q))
+      );
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state">No matching parts</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(p => `
+        <div class="part-card" onclick="openPart('${p.id}')">
+          <div class="part-card-top">
+            <div class="part-name">${escapeHtml(p.partName)}</div>
+            <div class="part-number">${escapeHtml(p.partNumber)}</div>
+          </div>
+          <div class="part-meta">
+            <span><strong>PRG #:</strong> ${escapeHtml(p.prg)}</span>
+            <span><strong>Program:</strong> ${escapeHtml(p.program)}</span>
+            <span><strong>Client:</strong> ${escapeHtml(p.client)}</span>
+            <span><strong>Fixture:</strong> ${escapeHtml(p.fixture)}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // ========== ADD / EDIT PART ==========
+    let editingPartId = null;
+
+    function cancelPartForm() {
+      if (editingPartId) {
+        openPart(editingPartId);
+      } else {
+        showScreen("parts");
+      }
+    }
+
+    function openAddPart() {
+      editingPartId = null;
+      document.getElementById("add-part-title").textContent = "Add Part";
+      document.getElementById("new-part-name").value = "";
+      document.getElementById("new-part-number").value = "";
+      document.getElementById("new-part-client").value = "";
+      document.getElementById("new-part-prg").value = "";
+      document.getElementById("new-part-program").value = "";
+      document.getElementById("new-part-fixture").value = "";
+      document.getElementById("new-part-amps").value = "";
+      document.getElementById("new-part-volts").value = "";
+      document.getElementById("new-part-air").value = "";
+      showScreen("add-part");
+    }
+
+    function openEditPart() {
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (!part) return;
+      editingPartId = part.id;
+      document.getElementById("add-part-title").textContent = "Edit Part Info";
+      document.getElementById("new-part-name").value = part.partName || "";
+      document.getElementById("new-part-number").value = part.partNumber || "";
+      document.getElementById("new-part-client").value = part.client || "";
+      document.getElementById("new-part-prg").value = part.prg || "";
+      document.getElementById("new-part-program").value = part.program || "";
+      document.getElementById("new-part-fixture").value = (part.fixtures || []).join(" | ");
+      document.getElementById("new-part-amps").value = part.amps || "";
+      document.getElementById("new-part-volts").value = part.volts || "";
+      document.getElementById("new-part-air").value = part.airPressure || "";
+      showScreen("add-part");
+    }
+
+    function saveNewPart() {
+      const name = document.getElementById("new-part-name").value.trim();
+      const number = document.getElementById("new-part-number").value.trim();
+      if (!name || !number) {
+        alert("Part Name and Part # are required");
+        return;
+      }
+
+      if (editingPartId) {
+        // Update existing part
+        const part = data[currentType].parts.find(p => p.id === editingPartId);
+        if (!part) return;
+        part.partName = name;
+        part.partNumber = number;
+        part.client = document.getElementById("new-part-client").value.trim() || "";
+        part.prg = document.getElementById("new-part-prg").value.trim() || "";
+        part.program = document.getElementById("new-part-program").value.trim() || "";
+        part.fixtures = (document.getElementById("new-part-fixture").value || "").split("|").map(s => s.trim()).filter(Boolean);
+        part.amps = document.getElementById("new-part-amps").value.trim() || "";
+        part.volts = document.getElementById("new-part-volts").value.trim() || "";
+        part.airPressure = document.getElementById("new-part-air").value.trim() || "";
+        saveData();
+        showToast("Part updated");
+        openPart(editingPartId);
+        editingPartId = null;
+      } else {
+        // Create new part
+        const newPart = {
+          id: currentType.toLowerCase() + "-" + Date.now(),
+          client: document.getElementById("new-part-client").value.trim() || "",
+          partName: name,
+          partNumber: number,
+          prg: document.getElementById("new-part-prg").value.trim() || "",
+          program: document.getElementById("new-part-program").value.trim() || "",
+          fixtures: (document.getElementById("new-part-fixture").value || "").split("|").map(s => s.trim()).filter(Boolean),
+          amps: document.getElementById("new-part-amps").value.trim() || "",
+          volts: document.getElementById("new-part-volts").value.trim() || "",
+          airPressure: document.getElementById("new-part-air").value.trim() || "",
+          steps: []
+        };
+        data[currentType].parts.unshift(newPart);
+        saveData();
+        showToast("Part added");
+        openPart(newPart.id);
+      }
+    }
+
+    // ========== IMAGE HELPERS ==========
+    let currentStepImage = null; // temporary holding for step being edited
+
+    function compressImage(file, maxWidth, quality) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let w = img.width;
+            let h = img.height;
+            if (w > maxWidth) {
+              h = Math.round(h * maxWidth / w);
+              w = maxWidth;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePartImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (!part) return;
+      showToast("Processing photo...");
+      const dataUrl = await compressImage(file, 800, 0.7);
+      part.image = dataUrl;
+      saveData();
+      showPartImage(part);
+      showToast("Photo saved");
+      event.target.value = "";
+    }
+
+    function showPartImage(part) {
+      const img = document.getElementById("part-image");
+      const placeholder = document.getElementById("part-image-placeholder");
+      if (part.image) {
+        img.src = part.image;
+        img.style.display = "block";
+        placeholder.style.display = "none";
+      } else {
+        img.style.display = "none";
+        placeholder.style.display = "block";
+      }
+    }
+
+    async function handleStepImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showToast("Processing photo...");
+      currentStepImage = await compressImage(file, 600, 0.7);
+      const preview = document.getElementById("step-image-preview");
+      const placeholder = document.getElementById("step-image-placeholder");
+      preview.src = currentStepImage;
+      preview.style.display = "block";
+      placeholder.style.display = "none";
+      document.getElementById("remove-step-image-btn").style.display = "inline-flex";
+      showToast("Photo ready");
+      event.target.value = "";
+    }
+
+    function removeStepImage() {
+      currentStepImage = null;
+      document.getElementById("step-image-preview").style.display = "none";
+      document.getElementById("step-image-placeholder").style.display = "block";
+      document.getElementById("remove-step-image-btn").style.display = "none";
+    }
+
+    // ========== PART DETAIL ==========
+    function openPart(id) {
+      currentPartId = id;
+      editMode = false;
+      const part = data[currentType].parts.find(p => p.id === id);
+      if (!part) return;
+
+      document.getElementById("detail-name").textContent = part.partName;
+      document.getElementById("detail-number").textContent = "Part # " + part.partNumber;
+
+      showPartImage(part);
+
+      const grid = document.getElementById("param-grid");
+      grid.innerHTML = `
+        <div class="param-item"><label>Client</label><div class="value">${escapeHtml(part.client)}</div></div>
+        <div class="param-item"><label>PRG #</label><div class="value">${escapeHtml(part.prg)}</div></div>
+        <div class="param-item full"><label>Program</label><div class="value">${escapeHtml(part.program)}</div></div>
+        <div class="param-item"><label>Amps</label><div class="value">${escapeHtml(part.amps)}</div></div>
+        <div class="param-item"><label>Volts</label><div class="value">${escapeHtml(part.volts)}</div></div>
+        <div class="param-item"><label>Air Pressure</label><div class="value">${escapeHtml(part.airPressure)}</div></div>
+      `;
+
+      renderFixtures(part);
+      document.getElementById("steps-edit-bar").style.display = "none";
+      renderSteps(part);
+      showScreen("part-detail");
+    }
+
+    function renderFixtures(part) {
+      let container = document.getElementById("fixtures-section");
+      if (!container) {
+        container = document.createElement("div");
+        container.id = "fixtures-section";
+        const paramGrid = document.getElementById("param-grid");
+        paramGrid.parentNode.insertBefore(container, paramGrid.nextSibling);
+      }
+      // Normalize old string fixtures to objects
+      if (part.fixtures && part.fixtures.length && typeof part.fixtures[0] === "string") {
+        part.fixtures = part.fixtures.map(f => ({ name: f, image: null }));
+      }
+      const fixtures = part.fixtures || [];
+      container.innerHTML = `
+        <div class="section-title">Fixtures</div>
+        <div id="fixtures-list">
+          ${fixtures.length ? fixtures.map((f, i) => `
+            <div class="fixture-item" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:600;">${escapeHtml(f.name || f)}</span>
+                ${editMode ? `<button class="btn btn-danger btn-sm" onclick="removeFixture(${i})">✕</button>` : ""}
+              </div>
+              ${f.image ? `<img src="${f.image}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;margin-top:8px;background:#0a0e14;">` : ""}
+              ${editMode ? `
+                <div style="margin-top:8px;">
+                  <button class="btn btn-secondary btn-sm" onclick="document.getElementById('fixture-img-${i}').click()">Add / Change Photo</button>
+                  <input type="file" id="fixture-img-${i}" accept="image/*" style="display:none" onchange="handleFixtureImage(${i}, event)">
+                  ${f.image ? `<button class="btn btn-secondary btn-sm" onclick="removeFixtureImage(${i})">Remove Photo</button>` : ""}
+                </div>
+              ` : ""}
+            </div>
+          `).join("") : '<div class="empty-state" style="padding:12px;">No fixtures yet</div>'}
+        </div>
+        ${editMode ? `
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="text" id="new-fixture-input" placeholder="Add fixture name or number" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);">
+            <button class="btn btn-success btn-sm" onclick="addFixture()">+ Add</button>
+          </div>
+        ` : ""}
+      `;
+    }
+
+    function addFixture() {
+      const input = document.getElementById("new-fixture-input");
+      const val = input.value.trim();
+      if (!val) return;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (!part.fixtures) part.fixtures = [];
+      part.fixtures.push({ name: val, image: null });
+      saveData();
+      renderFixtures(part);
+      input.value = "";
+    }
+
+    function removeFixture(index) {
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      part.fixtures.splice(index, 1);
+      saveData();
+      renderFixtures(part);
+    }
+
+    async function handleFixtureImage(index, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (!part || !part.fixtures || !part.fixtures[index]) return;
+      showToast("Processing photo...");
+      const dataUrl = await compressImage(file, 600, 0.7);
+      part.fixtures[index].image = dataUrl;
+      saveData();
+      renderFixtures(part);
+      showToast("Photo saved");
+      event.target.value = "";
+    }
+
+    function removeFixtureImage(index) {
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (part && part.fixtures && part.fixtures[index]) {
+        part.fixtures[index].image = null;
+        saveData();
+        renderFixtures(part);
+      }
+    }
+
+    function renderSteps(part) {
+      const list = document.getElementById("steps-list");
+      if (!part.steps || part.steps.length === 0) {
+        list.innerHTML = '<div class="empty-state">No steps yet. Tap Edit to add some.</div>';
+        return;
+      }
+
+      list.innerHTML = part.steps.map((s, i) => `
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-title">${escapeHtml(s.title)}</div>
+          </div>
+          <div class="step-body">${escapeHtml(s.body)}</div>
+          ${s.image ? `<img class="step-image" src="${s.image}" alt="Step photo">` : ""}
+          ${editMode ? `<div class="step-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+            <button class="btn btn-secondary btn-sm" onclick="moveStep(${i}, -1)" ${i === 0 ? "disabled" : ""}>↑</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveStep(${i}, 1)" ${i === part.steps.length - 1 ? "disabled" : ""}>↓</button>
+            <button class="btn btn-secondary btn-sm" onclick="editStep(${i})">Edit</button>
+          </div>` : ""}
+        </div>
+      `).join("");
+    }
+
+    function moveStep(index, direction) {
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      if (!part || !part.steps) return;
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= part.steps.length) return;
+      const step = part.steps.splice(index, 1)[0];
+      part.steps.splice(newIndex, 0, step);
+      saveData();
+      renderSteps(part);
+      showToast("Step moved");
+    }
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      document.getElementById("steps-edit-bar").style.display = editMode ? "flex" : "none";
+      renderFixtures(part);
+      renderSteps(part);
+      showToast(editMode ? "Edit mode on" : "Edit mode off");
+    }
+
+    function addStep() {
+      currentStepIndex = null;
+      currentStepImage = null;
+      document.getElementById("edit-step-title").textContent = "Add Step";
+      document.getElementById("step-title-input").value = "";
+      document.getElementById("step-body-input").value = "";
+      document.getElementById("step-image-preview").style.display = "none";
+      document.getElementById("step-image-placeholder").style.display = "block";
+      document.getElementById("remove-step-image-btn").style.display = "none";
+      document.getElementById("delete-step-wrap").style.display = "none";
+      showScreen("edit-step");
+    }
+
+    function editStep(index) {
+      currentStepIndex = index;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      const step = part.steps[index];
+      document.getElementById("edit-step-title").textContent = "Edit Step";
+      document.getElementById("step-title-input").value = step.title;
+      document.getElementById("step-body-input").value = step.body;
+      currentStepImage = step.image || null;
+      if (step.image) {
+        document.getElementById("step-image-preview").src = step.image;
+        document.getElementById("step-image-preview").style.display = "block";
+        document.getElementById("step-image-placeholder").style.display = "none";
+        document.getElementById("remove-step-image-btn").style.display = "inline-flex";
+      } else {
+        document.getElementById("step-image-preview").style.display = "none";
+        document.getElementById("step-image-placeholder").style.display = "block";
+        document.getElementById("remove-step-image-btn").style.display = "none";
+      }
+      document.getElementById("delete-step-wrap").style.display = "block";
+      showScreen("edit-step");
+    }
+
+    function saveStep() {
+      const title = document.getElementById("step-title-input").value.trim();
+      const body = document.getElementById("step-body-input").value.trim();
+      if (!title) {
+        alert("Please enter a step title");
+        return;
+      }
+
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      const stepData = { title, body };
+      if (currentStepImage) {
+        stepData.image = currentStepImage;
+      }
+      if (currentStepIndex === null) {
+        part.steps.push(stepData);
+      } else {
+        // Preserve existing image if none newly selected and not removed
+        if (!currentStepImage && part.steps[currentStepIndex].image && document.getElementById("step-image-preview").style.display !== "none") {
+          stepData.image = part.steps[currentStepIndex].image;
+        }
+        part.steps[currentStepIndex] = stepData;
+      }
+      saveData();
+      openPart(currentPartId);
+      editMode = true;
+      document.getElementById("steps-edit-bar").style.display = "flex";
+      renderSteps(part);
+    }
+
+    function deleteStep() {
+      if (!confirm("Delete this step?")) return;
+      const part = data[currentType].parts.find(p => p.id === currentPartId);
+      part.steps.splice(currentStepIndex, 1);
+      saveData();
+      openPart(currentPartId);
+      editMode = true;
+      document.getElementById("steps-edit-bar").style.display = "flex";
+      renderSteps(part);
+    }
+
+    // ========== MAINTENANCE ==========
+    let editingMaintId = null;
+
+    function openMaintenance(type) {
+      currentType = type;
+      document.getElementById("maint-title").textContent = "Maintenance";
+      document.getElementById("maint-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("maint-search-input").value = "";
+      renderMaintenance();
+      showScreen("maintenance");
+    }
+
+    function renderMaintenance() {
+      const list = document.getElementById("maint-list");
+      const items = data[currentType].maintenance || [];
+
+      if (items.length === 0) {
+        list.innerHTML = '<div class="empty-state">No maintenance items yet</div>';
+        return;
+      }
+
+      list.innerHTML = items.map(m => `
+        <div class="maint-card" onclick="openMaintDetail('${m.id}')">
+          <div>
+            <h3>${escapeHtml(m.name)}</h3>
+            <span>${escapeHtml(m.code || "")}</span>
+          </div>
+          <div style="color:var(--text-muted)">›</div>
+        </div>
+      `).join("");
+    }
+
+    function filterMaintenance() {
+      const q = document.getElementById("maint-search-input").value.trim().toLowerCase();
+      const items = data[currentType].maintenance || [];
+      const list = document.getElementById("maint-list");
+
+      if (!q) {
+        renderMaintenance();
+        return;
+      }
+
+      const filtered = items.filter(m =>
+        (m.name && m.name.toLowerCase().includes(q)) ||
+        (m.code && m.code.toLowerCase().includes(q))
+      );
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state">No matching items</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(m => `
+        <div class="maint-card" onclick="openMaintDetail('${m.id}')">
+          <div>
+            <h3>${escapeHtml(m.name)}</h3>
+            <span>${escapeHtml(m.code || "")}</span>
+          </div>
+          <div style="color:var(--text-muted)">›</div>
+        </div>
+      `).join("");
+    }
+
+    function openAddMaintenance() {
+      editingMaintId = null;
+      document.getElementById("add-maint-title").textContent = "Add Maintenance";
+      document.getElementById("new-maint-name").value = "";
+      document.getElementById("new-maint-code").value = "";
+      showScreen("add-maint");
+    }
+
+    function openEditMaintenance(id) {
+      const item = data[currentType].maintenance.find(m => m.id === id);
+      if (!item) return;
+      editingMaintId = id;
+      document.getElementById("add-maint-title").textContent = "Edit Maintenance";
+      document.getElementById("new-maint-name").value = item.name || "";
+      document.getElementById("new-maint-code").value = item.code || "";
+      showScreen("add-maint");
+    }
+
+    function cancelMaintForm() {
+      if (editingMaintId) {
+        openMaintDetail(editingMaintId);
+      } else {
+        showScreen("maintenance");
+      }
+    }
+
+    function saveMaintenance() {
+      const name = document.getElementById("new-maint-name").value.trim();
+      const code = document.getElementById("new-maint-code").value.trim();
+      if (!name) {
+        alert("Name is required");
+        return;
+      }
+
+      if (editingMaintId) {
+        const item = data[currentType].maintenance.find(m => m.id === editingMaintId);
+        if (item) {
+          item.name = name;
+          item.code = code;
+          saveData();
+          showToast("Updated");
+          openMaintDetail(editingMaintId);
+        }
+        editingMaintId = null;
+      } else {
+        const newItem = {
+          id: "m-" + currentType.toLowerCase() + "-" + Date.now(),
+          name: name,
+          code: code,
+          steps: []
+        };
+        if (!data[currentType].maintenance) data[currentType].maintenance = [];
+        data[currentType].maintenance.unshift(newItem);
+        saveData();
+        showToast("Added");
+        openMaintDetail(newItem.id);
+      }
+    }
+
+    function openMaintDetail(id) {
+      const item = data[currentType].maintenance.find(m => m.id === id);
+      if (!item) return;
+
+      document.getElementById("maint-detail-title").textContent = item.name;
+      // Add edit button dynamically or note it
+      const list = document.getElementById("maint-steps-list");
+      list.innerHTML = (item.steps || []).map((s, i) => `
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-title">${escapeHtml(s.title)}</div>
+          </div>
+          <div class="step-body">${escapeHtml(s.body)}</div>
+          ${s.image ? `<img class="step-image" src="${s.image}" alt="Step photo">` : ""}
+        </div>
+      `).join("");
+      
+      // Add edit info button in header area if not present
+      if (!document.getElementById("maint-edit-info-btn")) {
+        const header = document.querySelector("#screen-maint-detail .header");
+        const btn = document.createElement("button");
+        btn.id = "maint-edit-info-btn";
+        btn.className = "btn btn-secondary btn-sm";
+        btn.textContent = "Edit Info";
+        btn.onclick = () => openEditMaintenance(id);
+        header.appendChild(btn);
+      } else {
+        document.getElementById("maint-edit-info-btn").onclick = () => openEditMaintenance(id);
+      }
+
+      showScreen("maint-detail");
+    }
+
+    // ========== HELPERS ==========
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    
+    function setActiveNav(el) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+    }
+
+    // ========== INIT ==========
+    loadData();
+  
+  
+    // ========== INLINE SERVICE WORKER ==========
+    if ("serviceWorker" in navigator) {
+      const swCode = `
+        const CACHE = "coating-app-v1";
+        self.addEventListener("install", e => {
+          e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./"])).then(() => self.skipWaiting()));
+        });
+        self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
+        self.addEventListener("fetch", e => {
+          e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match("./"))));
+        });
+      `;
+      const blob = new Blob([swCode], { type: "application/javascript" });
+      const url = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(url).catch(() => {});
+    }
+
+  </script>
+</body>
+</html>
