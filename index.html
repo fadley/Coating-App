@@ -1012,11 +1012,16 @@
           console.warn("Could not load saved data");
         }
       } else {
-        // Force fresh full dataset
         data = JSON.parse(JSON.stringify(defaultData));
         localStorage.setItem("coatingAppVersion", "full-2026");
-        localStorage.setItem("coatingAppData", JSON.stringify(data));
       }
+      // Ensure ECP section exists (for upgrades)
+      if (!data.ECP) {
+        data.ECP = { parts: [], maintenance: [] };
+      }
+      if (!data.TWAS) data.TWAS = { parts: [], maintenance: [] };
+      if (!data.PLASMA) data.PLASMA = { parts: [], maintenance: [] };
+      saveData();
     }
 
     function saveData() {
