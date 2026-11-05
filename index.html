@@ -1,3 +1,14 @@
+None selected 
+
+Skip to content
+Using Gmail with screen readers
+Conversations
+91% of 15 GB used
+Terms · Privacy · Program Policies
+Last account activity: 0 minutes ago
+Details
+coating-app-ecp.html
+100%
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -692,6 +703,16 @@
           <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('PLASMA')">Maintenance</button>
         </div>
       </div>
+
+      <div class="type-card" style="border-color:#10b981" onclick="openCoating('ECP')">
+        <div class="badge" style="background:#10b981">ECP</div>
+        <h2>ECP</h2>
+        <p>Parts library & maintenance procedures</p>
+        <div class="type-actions">
+          <button class="btn btn-primary" style="background:#10b981" onclick="event.stopPropagation(); openParts('ECP')">Parts</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('ECP')">Maintenance</button>
+        </div>
+      </div>
     </div>
 
     <div style="margin-top: 32px; text-align: center;">
@@ -699,7 +720,8 @@
       <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
         <button class="btn btn-secondary btn-sm" onclick="exportData()">Export Data</button>
         <button class="btn btn-secondary btn-sm" onclick="copyData()">Copy Data</button>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">Import Data</button>
+        <button class="btn btn-secondary btn-sm" onclick="pasteData()">Paste Data</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-input').click()">Import File</button>
         <input type="file" id="import-input" accept=".json,application/json" style="display:none" onchange="importData(event)">
       </div>
       <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; max-width: 280px; margin-left: auto; margin-right: auto;">
@@ -975,6 +997,10 @@
             { title: "Reassemble & Test", body: "Reinstall components. Perform test arc." }
           ]}
         ]
+      },
+      ECP: {
+        parts: [],
+        maintenance: []
       }
     };
 
@@ -1060,6 +1086,30 @@
       }
     }
 
+    function pasteData() {
+      const text = prompt("Paste your backup data here (long-press and Paste):");
+      if (!text || !text.trim()) {
+        return;
+      }
+      try {
+        const parsed = JSON.parse(text);
+        const imported = parsed.data ? parsed.data : parsed;
+        if (!imported.TWAS || !imported.PLASMA) {
+          alert("This does not look like a valid Coating App backup.");
+          return;
+        }
+        if (!confirm("This will replace all current parts, steps, fixtures, and photos. Continue?")) {
+          return;
+        }
+        data = imported;
+        saveData();
+        showToast("Data restored");
+        showScreen("landing");
+      } catch (err) {
+        alert("Could not read the pasted data. Make sure you copied a full backup.");
+      }
+    }
+
     function importData(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1103,7 +1153,7 @@
     function openParts(type) {
       currentType = type;
       document.getElementById("parts-title").textContent = "Parts";
-      document.getElementById("parts-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("parts-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : type === "PLASMA" ? "Plasma Coating" : "ECP";
       document.getElementById("search-input").value = "";
       renderParts();
       showScreen("parts");
@@ -1596,7 +1646,7 @@
     function openMaintenance(type) {
       currentType = type;
       document.getElementById("maint-title").textContent = "Maintenance";
-      document.getElementById("maint-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("maint-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : type === "PLASMA" ? "Plasma Coating" : "ECP";
       document.getElementById("maint-search-input").value = "";
       renderMaintenance();
       showScreen("maintenance");
@@ -1793,3 +1843,4 @@
   </script>
 </body>
 </html>
+Displaying coating-app-ecp.html.
