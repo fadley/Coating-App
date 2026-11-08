@@ -692,6 +692,16 @@
           <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('PLASMA')">Maintenance</button>
         </div>
       </div>
+
+      <div class="type-card" style="border-color:#10b981" onclick="openCoating('ECP')">
+        <div class="badge" style="background:#10b981">ECP</div>
+        <h2>ECP</h2>
+        <p>Parts library & maintenance procedures</p>
+        <div class="type-actions">
+          <button class="btn btn-primary" style="background:#10b981" onclick="event.stopPropagation(); openParts('ECP')">Parts</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openMaintenance('ECP')">Maintenance</button>
+        </div>
+      </div>
     </div>
 
     <div style="margin-top: 32px; text-align: center;">
@@ -771,6 +781,16 @@
     <div class="form-group">
       <label>Air Pressure</label>
       <input type="text" id="new-part-air" placeholder="e.g. 60">
+    </div>
+    <div class="form-group" id="water-pressure-group" style="display:none;">
+      <label>Water Pressure</label>
+      <input type="text" id="new-part-water" placeholder="e.g. 40">
+    </div>
+    <div class="form-group" id="fixture-pic-group" style="display:none;">
+      <label>Fixture Photo</label>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ecp-fixture-img').click()">Add Fixture Photo</button>
+      <input type="file" id="ecp-fixture-img" accept="image/*" style="display:none" onchange="handleEcpFixtureImage(event)">
+      <img id="ecp-fixture-preview" style="display:none; width:100%; max-height:140px; object-fit:contain; margin-top:8px; border-radius:8px; background:#0a0e14;">
     </div>
 
     <div class="form-actions">
@@ -976,6 +996,10 @@
             { title: "Reassemble & Test", body: "Reinstall components. Perform test arc." }
           ]}
         ]
+      },
+      ECP: {
+        parts: [],
+        maintenance: []
       }
     };
 
@@ -1005,6 +1029,7 @@
       }
     }
 
+    if (!data.ECP) data.ECP = { parts: [], maintenance: [] };
     function saveData() {
       localStorage.setItem("coatingAppData", JSON.stringify(data));
       showToast("Saved");
@@ -1128,7 +1153,7 @@
     function openParts(type) {
       currentType = type;
       document.getElementById("parts-title").textContent = "Parts";
-      document.getElementById("parts-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("parts-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : type === "PLASMA" ? "Plasma Coating" : "ECP";
       document.getElementById("search-input").value = "";
       renderParts();
       showScreen("parts");
@@ -1227,8 +1252,10 @@
       }
     }
 
+    let ecpFixtureImage = null;
     function openAddPart() {
       editingPartId = null;
+      ecpFixtureImage = null;
       document.getElementById("add-part-title").textContent = "Add Part";
       document.getElementById("new-part-name").value = "";
       document.getElementById("new-part-number").value = "";
@@ -1239,6 +1266,19 @@
       document.getElementById("new-part-amps").value = "";
       document.getElementById("new-part-volts").value = "";
       document.getElementById("new-part-air").value = "";
+      const waterEl = document.getElementById("new-part-water");
+      if (waterEl) waterEl.value = "";
+      document.getElementById("ecp-fixture-preview").style.display = "none";
+      const isEcp = currentType === "ECP";
+      document.getElementById("water-pressure-group").style.display = isEcp ? "block" : "none";
+      document.getElementById("fixture-pic-group").style.display = isEcp ? "block" : "none";
+      const clientLabel = document.querySelector('label[for="new-part-client"], .form-group label');
+      // Update Client label to Company for ECP
+      const labels = document.querySelectorAll("#screen-add-part .form-group label");
+      labels.forEach(l => {
+        if (l.textContent.includes("Client")) l.textContent = isEcp ? "Company" : "Client";
+        if (l.textContent.includes("Part Name")) l.textContent = isEcp ? "Name *" : "Part Name *";
+      });
       showScreen("add-part");
     }
 
@@ -1280,6 +1320,10 @@
         part.amps = document.getElementById("new-part-amps").value.trim() || "";
         part.volts = document.getElementById("new-part-volts").value.trim() || "";
         part.airPressure = document.getElementById("new-part-air").value.trim() || "";
+        if (currentType === "ECP") {
+          part.waterPressure = document.getElementById("new-part-water").value.trim() || "";
+          if (ecpFixtureImage) part.fixtureImage = ecpFixtureImage;
+        }
         saveData();
         showToast("Part updated");
         openPart(editingPartId);
@@ -1297,6 +1341,8 @@
           amps: document.getElementById("new-part-amps").value.trim() || "",
           volts: document.getElementById("new-part-volts").value.trim() || "",
           airPressure: document.getElementById("new-part-air").value.trim() || "",
+          waterPressure: currentType === "ECP" ? (document.getElementById("new-part-water").value.trim() || "") : "",
+          fixtureImage: currentType === "ECP" ? ecpFixtureImage : null,
           steps: []
         };
         data[currentType].parts.unshift(newPart);
@@ -1396,14 +1442,24 @@
       showPartImage(part);
 
       const grid = document.getElementById("param-grid");
-      grid.innerHTML = `
-        <div class="param-item"><label>Client</label><div class="value">${escapeHtml(part.client)}</div></div>
+      let gridHtml = `
+        <div class="param-item"><label>${currentType === "ECP" ? "Company" : "Client"}</label><div class="value">${escapeHtml(part.client)}</div></div>
         <div class="param-item"><label>PRG #</label><div class="value">${escapeHtml(part.prg)}</div></div>
         <div class="param-item full"><label>Program</label><div class="value">${escapeHtml(part.program)}</div></div>
-        <div class="param-item"><label>Amps</label><div class="value">${escapeHtml(part.amps)}</div></div>
-        <div class="param-item"><label>Volts</label><div class="value">${escapeHtml(part.volts)}</div></div>
-        <div class="param-item"><label>Air Pressure</label><div class="value">${escapeHtml(part.airPressure)}</div></div>
       `;
+      if (currentType === "ECP") {
+        gridHtml += `<div class="param-item full"><label>Water Pressure</label><div class="value">${escapeHtml(part.waterPressure || "")}</div></div>`;
+        if (part.fixtureImage) {
+          gridHtml += `<div class="param-item full"><label>Fixture Photo</label><img src="${part.fixtureImage}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;margin-top:6px;background:#0a0e14;"></div>`;
+        }
+      } else {
+        gridHtml += `
+          <div class="param-item"><label>Amps</label><div class="value">${escapeHtml(part.amps)}</div></div>
+          <div class="param-item"><label>Volts</label><div class="value">${escapeHtml(part.volts)}</div></div>
+          <div class="param-item"><label>Air Pressure</label><div class="value">${escapeHtml(part.airPressure)}</div></div>
+        `;
+      }
+      grid.innerHTML = gridHtml;
 
       renderFixtures(part);
       document.getElementById("steps-edit-bar").style.display = "none";
@@ -1621,7 +1677,7 @@
     function openMaintenance(type) {
       currentType = type;
       document.getElementById("maint-title").textContent = "Maintenance";
-      document.getElementById("maint-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : "Plasma Coating";
+      document.getElementById("maint-subtitle").textContent = type === "TWAS" ? "Twin Arc Spray" : type === "PLASMA" ? "Plasma Coating" : "ECP";
       document.getElementById("maint-search-input").value = "";
       renderMaintenance();
       showScreen("maintenance");
@@ -1779,6 +1835,14 @@
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
+    }
+
+    async function handleEcpFixtureImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      ecpFixtureImage = await compressImage(file, 600, 0.7);
+      document.getElementById("ecp-fixture-preview").src = ecpFixtureImage;
+      document.getElementById("ecp-fixture-preview").style.display = "block";
     }
 
     function showToast(msg) {
